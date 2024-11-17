@@ -31,11 +31,8 @@ func NewUsecaseService(git in.IGit) in.IScaffoldingUsecase {
 	}
 }
 
-func (u *UsecaseService) StartNewProject() error {
-	projectName, err := shared.AskForInput("Enter the name of the project: ")
-	if err != nil {
-		return err
-	}
+func (u *UsecaseService) StartNewProject() (err error) {
+	u.clear()
 
 	result, err := shared.ShowMultipleChoiceSelector(
 		"Select the type of project you want to create",
@@ -50,7 +47,18 @@ func (u *UsecaseService) StartNewProject() error {
 		return err
 	}
 
-	fmt.Println(fmt.Sprintf("Selected %s", result))
+	fmt.Println("")
+	fmt.Println("--------------------------------------------------------------------------------")
+	fmt.Println("")
+
+	projectName, err := shared.AskForInput("Enter the name of the project: ")
+	if err != nil {
+		return err
+	}
+
+	if len(projectName) == 0 {
+		return fmt.Errorf("project name cannot be empty")
+	}
 
 	projectType := ProjectTypes(result)
 	err = u.StartNewProjectWithType(projectType, projectName)
@@ -113,4 +121,8 @@ func (u *UsecaseService) replaceTextInFiles(dir string, replacements map[string]
 		return nil
 	})
 	return err
+}
+
+func (u *UsecaseService) clear() {
+	_ = shared.RunCommand("clear", []string{""}, "", true)
 }
