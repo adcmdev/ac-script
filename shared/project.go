@@ -2,7 +2,9 @@ package shared
 
 import (
 	"bufio"
+	"fmt"
 	"os"
+	"os/exec"
 	"strings"
 )
 
@@ -24,4 +26,18 @@ func GetProjectName() string {
 	}
 
 	return ""
+}
+
+func RunCommand(command string, args []string, workingDirectory string, printOutput bool) error {
+	cmd := exec.Command(command, args...)
+	if workingDirectory != "" {
+		cmd.Dir = workingDirectory
+	}
+
+	output, err := cmd.CombinedOutput()
+	if printOutput {
+		fmt.Println(string(output))
+	}
+
+	return err
 }

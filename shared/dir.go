@@ -30,3 +30,7 @@ func CreateFile(path, content string) error {
 
 	return nil
 }
+
+func Rename(source, destination string) error {
+	return os.Rename(source, destination)
+}

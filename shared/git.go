@@ -14,18 +14,38 @@ func NewACGit() in.IGit {
 	return &ACGit{}
 }
 
-func (t *ACGit) RunCommand(command string, args []string, workingDirectory string, printOutput bool) bool {
-	cmd := exec.Command(command, args...)
-	if workingDirectory != "" {
-		cmd.Dir = workingDirectory
+func (t *ACGit) Init(repoName, workingDirectory string) (err error) {
+	err = RunCommand("gh", []string{"repo", "create", "--private", repoName}, workingDirectory, true)
+	if err != nil {
+		return
 	}
 
-	output, err := cmd.CombinedOutput()
-	if printOutput {
-		fmt.Println(string(output))
+	err = RunCommand("git", []string{"init"}, workingDirectory, true)
+	if err != nil {
+		return
 	}
 
-	return err == nil
+	t.Add(".", workingDirectory, []string{})
+	t.Commit("Initial commit", workingDirectory)
+	err = RunCommand("git", []string{"branch", "-M", "main"}, workingDirectory, true)
+	if err != nil {
+		return
+	}
+
+	err = RunCommand(
+		"git",
+		[]string{"remote", "add", "origin", fmt.Sprintf("https://github.com/adcmdev/%s.git", repoName)},
+		workingDirectory,
+		true,
+	)
+
+	if err != nil {
+		return
+	}
+
+	err = RunCommand("git", []string{"push", "--set-upstream", "origin", "main"}, workingDirectory, true)
+
+	return
 }
 
 func (t *ACGit) Add(files, workingDirectory string, filesToExclude []string) {
@@ -33,20 +53,29 @@ func (t *ACGit) Add(files, workingDirectory string, filesToExclude []string) {
 		files = "."
 	}
 
-	t.RunCommand("git", []string{"add", files}, workingDirectory, true)
+	err := RunCommand("git", []string{"add", files}, workingDirectory, true)
+	if err != nil {
+		return
+	}
 
 	if len(filesToExclude) > 0 {
 		for _, file := range filesToExclude {
-			t.RunCommand("git", []string{"reset", file}, workingDirectory, true)
+			err := RunCommand("git", []string{"reset", file}, workingDirectory, true)
+			if err != nil {
+				return
+			}
 		}
 	}
 }
 
 func (t *ACGit) Commit(commit, workingDirectory string) {
-	t.RunCommand("git", []string{"commit", "-m", commit}, workingDirectory, true)
+	err := RunCommand("git", []string{"commit", "-m", commit}, workingDirectory, true)
+	if err != nil {
+		return
+	}
 }
 
-func (t *ACGit) Push(branch, workingDirectory string, force bool, newBranch bool) bool {
+func (t *ACGit) Push(branch, workingDirectory string, force bool, newBranch bool) error {
 	if branch == "" {
 		branch = t.CurrentBranch(workingDirectory)
 	}
@@ -67,7 +96,7 @@ func (t *ACGit) Push(branch, workingDirectory string, force bool, newBranch bool
 		args = append(args, "--force")
 	}
 
-	return t.RunCommand("git", args, workingDirectory, true)
+	return RunCommand("git", args, workingDirectory, true)
 }
 
 func (t *ACGit) CurrentBranch(workingDirectory string) string {
@@ -92,4 +121,13 @@ func (t *ACGit) BranchExists(branch, workingDirectory string) bool {
 
 	err := cmd.Run()
 	return err == nil
+}
+
+func (t *ACGit) Clone(url, workingDirectory string) error {
+	err := RunCommand("git", []string{"clone", url}, workingDirectory, true)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
