@@ -20,6 +20,25 @@ ac commit "Added new feature"
 - Commit the changes with the provided message
 - Push the changes to the remote repository
 
+# AC Checkout
+
+## Command Structure
+
+```shell
+ac checkout [branch]
+```
+
+## Example
+
+```shell
+ac checkout feature/new-login
+```
+
+### This command will:
+
+- Switch to the given branch if it already exists
+- Create the branch and switch to it if it does not exist
+
 # AC Mobile Deploy Local
 
 ## Local Version Change

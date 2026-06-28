@@ -6,4 +6,5 @@ type IGit interface {
 	Commit(commit string, workingDirectory string)
 	Push(branch string, workingDirectory string, force bool, newBranch bool) error
 	Clone(url string, workingDirectory string) error
+	Checkout(branch, workingDirectory string) error
 }

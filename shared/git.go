@@ -123,6 +123,18 @@ func (t *ACGit) BranchExists(branch, workingDirectory string) bool {
 	return err == nil
 }
 
+func (t *ACGit) Checkout(branch, workingDirectory string) error {
+	if branch == "" {
+		return fmt.Errorf("branch name is required")
+	}
+
+	if t.BranchExists(branch, workingDirectory) {
+		return RunCommand("git", []string{"checkout", branch}, workingDirectory, true)
+	}
+
+	return RunCommand("git", []string{"checkout", "-b", branch}, workingDirectory, true)
+}
+
 func (t *ACGit) Clone(url, workingDirectory string) error {
 	err := RunCommand("git", []string{"clone", url}, workingDirectory, true)
 	if err != nil {
