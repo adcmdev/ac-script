@@ -40,6 +40,7 @@ func (u *UsecaseService) DeployLocal(releaseType entities.TulReleaseType) error 
 	if err != nil {
 		return err
 	}
+	updatedPubspec = updateMsixVersionInPubspec(updatedPubspec, version)
 
 	if err := u.updateIOSProjectVersion(fullVersion, version); err != nil {
 		return err
@@ -126,4 +127,9 @@ func (u *UsecaseService) updateVersionCommentsInPubspec(pubspec, version string)
 
 	updatedPubspec := commentPattern.ReplaceAllString(pubspec, newComment)
 	return updatedPubspec, nil
+}
+
+func updateMsixVersionInPubspec(pubspec, version string) string {
+	msixVersionRegex := regexp.MustCompile(`(?m)^(\s+msix_version:\s*)\d+\.\d+\.\d+\.\d+`)
+	return msixVersionRegex.ReplaceAllString(pubspec, "${1}"+version+".0")
 }
